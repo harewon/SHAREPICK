@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>캠퍼스나누미 - 대한민국 대학생 교내 물품 공유 플랫폼</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.25s ease-out forwards',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.98)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(12px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+        }
+        .hide { display: none !important; }
+        
+        /* Custom scrollbar for mobile frame */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen py-0 md:py-6 text-gray-800 antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- 모바일 프레임 컨테이너 -->
+    <div id="app-container" class="w-full max-w-md bg-white h-screen md:h-[92vh] md:max-h-[880px] shadow-2xl md:rounded-[32px] flex flex-col relative overflow-hidden border border-gray-200/50">
+        
+        <!-- 상단 헤더 -->
+        <header id="header" class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white px-4 py-3.5 flex justify-between items-center z-10 shadow-md">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-hands-holding-child text-lg text-white"></i>
+                </div>
+                <span id="header-title" class="font-extrabold text-lg tracking-tight">캠퍼스나누미</span>
+            </div>
+            <div id="header-right" class="text-xs font-semibold bg-white/20 hover:bg-white/30 backdrop-blur-md px-3 py-1.5 rounded-full cursor-pointer transition active:scale-95 flex items-center space-x-1" onclick="openUnivSelector()">
+                <i class="fa-solid fa-graduation-cap text-[11px]"></i>
+                <span id="current-univ-badge">학교 선택</span>
+            </div>
+        </header>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <main id="main-content" class="flex-1 overflow-y-auto pb-20 bg-slate-50">
+            <!-- 동적으로 화면이 렌더링되는 영역 -->
+        </main>
+
+        <!-- 하단 네비게이션바 -->
+        <nav id="bottom-nav" class="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 flex justify-around py-2.5 text-gray-400 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+            <button onclick="switchTab('home')" class="nav-btn flex flex-col items-center transition-all duration-200 active:scale-95" data-tab="home">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[11px] mt-1 font-medium">홈</span>
+            </button>
+            <button onclick="switchTab('search')" class="nav-btn flex flex-col items-center transition-all duration-200 active:scale-95" data-tab="search">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                <span class="text-[11px] mt-1 font-medium">전체검색</span>
+            </button>
+            <button onclick="switchTab('write')" class="nav-btn flex flex-col items-center transition-all duration-200 active:scale-95" data-tab="write">
+                <div class="w-10 h-10 -mt-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-600/40 ring-4 ring-white">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </div>
+                <span class="text-[11px] mt-1 font-bold text-emerald-600">글쓰기</span>
+            </button>
+            <button onclick="switchTab('chat')" class="nav-btn flex flex-col items-center transition-all duration-200 active:scale-95" data-tab="chat">
+                <i class="fa-solid fa-comments text-lg"></i>
+                <span class="text-[11px] mt-1 font-medium">채팅</span>
+            </button>
+            <button onclick="switchTab('mypage')" class="nav-btn flex flex-col items-center transition-all duration-200 active:scale-95" data-tab="mypage">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[11px] mt-1 font-medium font-medium">마이</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- 애플리케이션 로직 -->
+    <script>
+        // 대한민국 주요 대학교 리스트 데이터베이스
+        const koreanUniversities = [
+            "가천대학교", "가톨릭대학교", "강원대학교", "건국대학교", "경기대학교", "경북대학교", "경상국립대학교", 
+            "경희대학교", "고려대학교", "광운대학교", "국민대학교", "군산대학교", "단국대학교", "단국대학교(죽전)", 
+            "대구가톨릭대학교", "명지대학교(자연)", "부천대학교", "부산대학교", "부경대학교", "상명대학교", "서강대학교", 
+            "서울대학교", "서울과학기술대학교", "서울시립대학교", "서울여자대학교", "성결대학교", "성균관대학교", "성신여자대학교", 
+            "세종대학교", "수원대학교", "숙명여자대학교", "순천향대학교", "숭실대학교", "아주대학교", "안동대학교", 
+            "안양대학교", "연세대학교", "연성대학교", "영남대학교", "울산대학교", "원광대학교", "이화여자대학교", 
+            "인천대학교", "인하대학교", "인하대학교(인근)", "전남대학교", "전북대학교", "제주대학교", "조선대학교", 
+            "중앙대학교", "진주교대", "창원대학교", "청주대학교", "총신대학교", "충남대학교", "충북대학교", "한국교원대학교", 
+            "한국공학대학교", "한국외국어대학교", "한국체육대학교", "한국기술교육대학교", "한남대학교", "한림대학교", 
+            "한성대학교", "한양대학교", "협성대학교", "호서대학교", "홍익대학교"
+        ];
+
+        // 사용자 및 상태 관리 (LocalStorage 연동)
+        let currentUser = JSON.parse(localStorage.getItem('nanumi_user')) || null;
+        let currentTab = 'home';
+        let currentFilter = 'all'; // all, request, share, rent
+
+        // 초기 예시 게시글 데이터
+        let posts = JSON.parse(localStorage.getItem('nanumi_posts')) || [
+            {
+                id: 101,
+                university: '경기대학교',
+                category: 'request',
+                subCategory: '전자기기',
+                title: '내일 공학용 계산기 빌려주실 분 구합니다ㅠㅠ',
+                content: '기계공학 전공시험인데 계산기를 깜빡했어요. 오후 2시쯤종합강의동 앞에서 받을 수 있으면 좋겠습니다!',
+                place: '종합강의동 앞',
+                datetime: '2026-06-02 13:30',
+                status: '진행중',
+                author: '익명의 지혜인',
+                likes: 4,
+                createdAt: '2026-09-28 11:20',
+                comments: [
+                    { author: '공학도', text: 'FX-570ES 대여 가능합니다!' },
+                    { author: '익명의 지혜인', text: '감사합니다! 채팅 드렸어요.' }
+                ]
+            },
+            {
+                id: 102,
+                university: '경기대학교',
+                category: 'share',
+                subCategory: '생활용품',
+                title: '축제 때 쓸 무소음 돗자리 무료 나눔합니다!',
+                content: '작년에 쓰고 안 쓰는 깨끗한 돗자리입니다. 대운동장 근처에서 바로 받아가실 분챗주세요~',
+                place: '학생회관 로비',
+                datetime: '상시 가능',
+                status: '진행중',
+                author: '축제마니아',
+                likes: 8,
+                createdAt: '2026-09-28 10:15',
+                comments: [
+                    { author: '새내기', text: '혹시 아직 나눔 가능한가요?' }
+                ]
+            },
+            {
+                id: 1,
+                university: '서울대학교',
+                category: 'request',
+                subCategory: '생활용품',
+                title: '내일 전공 수업 우산 빌려주실 분 있나요?',
+                content: '갑자기 비가 오는데 우산을 안 들고 왔네요ㅜㅜ 인문학관 근처에서 1교시 끝나고 급하게 빌릴 수 있을까요?',
+                place: '인문학관 로비',
+                datetime: '내일 오전 9시',
+                status: '진행중',
+                author: '우산없는학생',
+                likes: 3,
+                createdAt: '2026-09-28 10:30',
+                comments: [
+                    { author: '파란하늘', text: '학생회관 앞에 우산꽂이 있어요! 거기 쓰셔도 돼요.' }
+                ]
+            },
+            {
+                id: 2,
+                university: '고려대학교',
+                category: 'rent',
+                subCategory: '전자기기',
+                title: '공학용 계산기(FX-570ES) 대여해드립니다.',
+                content: '이번 학기 공학수학 끝내서 계산기 필요 없으신 분 대여해 드립니다. 깨끗하게 쓰실 분 연락주세요!',
+                place: '공학관 3호관',
+                datetime: '상시 협의',
+                status: '진행중',
+                author: '공대고인물',
+                likes: 7,
+                createdAt: '2026-09-28 09:15',
+                comments: []
+            },
+            {
+                id: 3,
+                university: '서울대학교',
+                category: 'share',
+                subCategory: '전공서적',
+                title: '안 쓰는 1학년 화학 전공 교재 무료 나눔합니다.',
+                content: '새 책처럼 깨끗합니다. 중앙도서관 앞에서 직거래 가능해요!',
+                place: '중앙도서관 앞',
+                datetime: '오늘 오후 4시',
+                status: '진행중',
+                author: '화학과만렙',
+                likes: 5,
+                createdAt: '2026-09-27 15:20',
+                comments: []
+            }
+        ];
+
+        let chats = JSON.parse(localStorage.getItem('nanumi_chats')) || [
+            {
+                id: 1,
+                postId: 2,
+                postTitle: '공학용 계산기(FX-570ES) 대여해드립니다.',
+                partner: '공대고인물',
+                lastMessage: '네 공학관 앞에서 2시에 뵙겠습니다!',
+                messages: [
+                    { sender: '나눔왕', text: '안녕하세요! 계산기 아직 대여 가능할까요?', time: '14:10' },
+                    { sender: '공대고인물', text: '네 가능합니다! 언제 필요하세요?', time: '14:12' },
+                    { sender: '나눔왕', text: '내일 오후 2시 어떠신가요?', time: '14:15' },
+                    { sender: '공대고인물', text: '네 공학관 앞에서 2시에 뵙겠습니다!', time: '14:16' }
+                ]
+            }
+        ];
+
+        function saveData() {
+            localStorage.setItem('nanumi_posts', JSON.stringify(posts));
+            localStorage.setItem('nanumi_chats', JSON.stringify(chats));
+            localStorage.setItem('nanumi_user', JSON.stringify(currentUser));
+        }
+
+        // 앱 초기 실행 진입점
+        window.onload = function() {
+            if (!currentUser) {
+                renderAuthScreen();
+            } else {
+                switchTab('home');
+            }
+        };
+
+        // 로그인 / 회원가입 화면
+        function renderAuthScreen() {
+            document.getElementById('bottom-nav').classList.add('hide');
+            let univOptions = koreanUniversities.map(u => `<option value="${u}">${u}</option>`).join('');
+            
+            let html = `
+                <div class="p-6 flex flex-col justify-between h-full animate-fade-in">
+                    <div class="my-auto py-8">
+                        <div class="text-center mb-8">
+                            <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-500/30 ring-8 ring-emerald-50">
+                                <i class="fa-solid fa-hands-holding-child text-4xl"></i>
+                            </div>
+                            <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">캠퍼스나누미</h1>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">우리 학교 학생들끼리 나누는 교내 물품 공유 플랫폼</p>
+                        </div>
+
+                        <div class="space-y-4 bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1.5"><i class="fa-solid fa-user mr-1.5 text-emerald-600"></i>닉네임</label>
+                                <input type="text" id="auth-nickname" placeholder="사용할 닉네임을 입력하세요" class="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1.5"><i class="fa-solid fa-school mr-1.5 text-emerald-600"></i>소속 대학교</label>
+                                <select id="auth-univ" class="w-full p-3.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                                    ${univOptions}
+                                </select>
+                            </div>
+                            <button onclick="handleRegister()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 hover:from-emerald-700 hover:to-teal-700 transition active:scale-[0.98] mt-2 text-sm">캠퍼스나누미 시작하기</button>
+                        </div>
+                    </div>
+                    <p class="text-center text-[11px] text-gray-400">© 2026 캠퍼스나누미. 모든 학생을 응원합니다.</p>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function handleRegister() {
+            const nickname = document.getElementById('auth-nickname').value.trim();
+            const university = document.getElementById('auth-univ').value;
+
+            if (!nickname) {
+                alert('사용하실 닉네임을 입력해주세요!');
+                return;
+            }
+
+            currentUser = { nickname, university };
+            saveData();
+            document.getElementById('bottom-nav').classList.remove('hide');
+            switchTab('home');
+        }
+
+        // 탭 전환 제어
+        function switchTab(tabName) {
+            if (!currentUser) {
+                renderAuthScreen();
+                return;
+            }
+            currentTab = tabName;
+            document.getElementById('bottom-nav').classList.remove('hide');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.tab === tabName) {
+                    btn.classList.add('text-emerald-600');
+                    btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('text-emerald-600');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            if (tabName === 'home') renderHome();
+            else if (tabName === 'search') renderSearch();
+            else if (tabName === 'write') renderWrite();
+            else if (tabName === 'chat') renderChatList();
+            else if (tabName === 'mypage') renderMyPage();
+        }
+
+        // 1. 홈 화면 (학교별 커뮤니티 게시판)
+        function renderHome() {
+            document.getElementById('header-title').innerText = currentUser.university + " 나눔판";
+            document.getElementById('current-univ-badge').innerHTML = `<i class="fa-solid fa-graduation-cap text-[11px]"></i><span>${currentUser.university.slice(0, 4)}..</span>`;
+
+            const univPosts = posts.filter(p => p.university === currentUser.university);
+            const filteredPosts = currentFilter === 'all' ? univPosts : univPosts.filter(p => p.category === currentFilter);
+
+            let html = `
+                <div class="p-4 animate-fade-in">
+                    <!-- 카테고리 필터 바 -->
+                    <div class="flex space-x-1.5 bg-slate-200/70 p-1.5 rounded-2xl text-xs font-semibold mb-4 shadow-inner">
+                        <button onclick="setFilter('all')" class="flex-1 py-2 rounded-xl transition-all duration-200 ${currentFilter==='all'?'bg-white text-emerald-700 shadow-md font-bold':'text-slate-600 hover:text-slate-900'}">전체</button>
+                        <button onclick="setFilter('request')" class="flex-1 py-2 rounded-xl transition-all duration-200 ${currentFilter==='request'?'bg-white text-amber-700 shadow-md font-bold':'text-slate-600 hover:text-slate-900'}">필요요청</button>
+                        <button onclick="setFilter('rent')" class="flex-1 py-2 rounded-xl transition-all duration-200 ${currentFilter==='rent'?'bg-white text-blue-700 shadow-md font-bold':'text-slate-600 hover:text-slate-900'}">물품대여</button>
+                        <button onclick="setFilter('share')" class="flex-1 py-2 rounded-xl transition-all duration-200 ${currentFilter==='share'?'bg-white text-emerald-700 shadow-md font-bold':'text-slate-600 hover:text-slate-900'}">무료나눔</button>
+                    </div>
+
+                    <!-- 게시글 목록 -->
+                    <div class="space-y-3">
+            `;
+
+            if(filteredPosts.length === 0) {
+                html += `
+                    <div class="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-box-open text-3xl"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700">등록된 물품 공유 글이 없습니다.</p>
+                        <p class="text-xs text-slate-400 mt-1">하단 [+] 버튼을 눌러 첫 게시글을 올려보세요!</p>
+                    </div>
+                `;
+            } else {
+                filteredPosts.forEach(post => {
+                    let badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    let badgeText = '필요요청';
+                    if(post.category === 'rent') { badgeClass = 'bg-blue-50 text-blue-700 border-blue-200'; badgeText = '물품대여'; }
+                    if(post.category === 'share') { badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'; badgeText = '무료나눔'; }
+                    
+                    const statusBadge = post.status === '해결완료' ? '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full text-[10px] font-bold ml-1.5">해결완료</span>' : '';
+
+                    html += `
+                        <div onclick="openDetail(${post.id})" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-emerald-300 transition-all duration-200 active:scale-[0.99] animate-slide-up">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${badgeClass}">${badgeText}</span>
+                                    ${statusBadge}
+                                </div>
+                                <span class="text-[11px] text-slate-400">${post.createdAt.slice(5, 16)}</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1 hover:text-emerald-600 transition">${post.title}</h3>
+                            <p class="text-slate-600 text-xs line-clamp-2 mb-3 leading-relaxed">${post.content}</p>
+                            <div class="flex justify-between items-center text-[11px] text-slate-500 border-t pt-2.5 border-slate-100">
+                                <span class="font-medium"><i class="fa-solid fa-location-dot mr-1 text-emerald-500"></i>${post.place}</span>
+                                <div class="flex space-x-3">
+                                    <span><i class="fa-regular fa-comment mr-1 text-slate-400"></i>${post.comments.length}</span>
+                                    <span><i class="fa-regular fa-heart mr-1 text-rose-400"></i>${post.likes}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            renderHome();
+        }
+
+        function openUnivSelector() {
+            let univOptions = koreanUniversities.map(u => `<option value="${u}" ${u===currentUser.university?'selected':''}>${u}</option>`).join('');
+            let html = `
+                <div class="p-5 animate-fade-in">
+                    <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-100">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-1">대학교 변경</h2>
+                        <p class="text-xs text-slate-500 mb-4">전국의 다른 대학 캠퍼스 나눔판을 둘러보실 수 있습니다.</p>
+                        <select id="change-univ-select" class="w-full p-3.5 border border-slate-200 rounded-xl mb-4 font-semibold text-slate-700 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            ${univOptions}
+                        </select>
+                        <button onclick="applyUniversityChange()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 transition active:scale-[0.98] text-sm">선택한 대학교로 이동</button>
+                        <button onclick="switchTab('home')" class="w-full mt-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-xs hover:bg-slate-200 transition">취소</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function applyUniversityChange() {
+            currentUser.university = document.getElementById('change-univ-select').value;
+            saveData();
+            switchTab('home');
+        }
+
+        // 2. 전체 검색 화면
+        function renderSearch() {
+            document.getElementById('header-title').innerText = "통합검색";
+            let html = `
+                <div class="p-4 animate-fade-in">
+                    <div class="flex space-x-2 mb-4">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="search-input" onkeyup="if(event.key==='Enter') executeSearch()" placeholder="필요한 물품 검색 (예: 계산기, 교재, 우산)" class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white shadow-sm">
+                        </div>
+                        <button onclick="executeSearch()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl font-bold text-sm shadow-md transition active:scale-95"><i class="fa-solid fa-search"></i></button>
+                    </div>
+                    <div id="search-results" class="space-y-3">
+                        <div class="text-center py-16 text-slate-400">
+                            <i class="fa-solid fa-search text-4xl text-slate-300 mb-2"></i>
+                            <p class="text-xs">전국 대학의 공유 물품을 자유롭게 검색해보세요.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function executeSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            if (!query) return;
+
+            const results = posts.filter(p => p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query) || p.place.toLowerCase().includes(query));
+            
+            let html = `<p class="text-xs text-slate-500 mb-2 font-semibold">검색 결과 총 <span class="text-emerald-600">${results.length}</span>건</p>`;
+            if(results.length === 0) {
+                html += `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-slate-100 text-slate-400 text-xs p-6">
+                        <i class="fa-solid fa-circle-exclamation text-3xl mb-2 text-slate-300"></i>
+                        <p class="font-bold text-slate-600 text-sm">검색 결과가 없습니다.</p>
+                        <p class="mt-1">다른 검색어로 찾아보세요.</p>
+                    </div>
+                `;
+            } else {
+                results.forEach(post => {
+                    html += `
+                        <div onclick="openDetail(${post.id})" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-emerald-400 transition animate-slide-up">
+                            <div class="flex justify-between items-center text-[11px] text-slate-400 mb-1.5">
+                                <span class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">${post.university}</span>
+                                <span class="font-medium text-slate-500">${post.category==='request'?'필요요청':post.category==='rent'?'물품대여':'무료나눔'}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm mb-1">${post.title}</h4>
+                            <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot mr-1 text-emerald-500"></i>${post.place}</p>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('search-results').innerHTML = html;
+        }
+
+        // 3. 물품 요청 및 나눔 글쓰기 화면
+        function renderWrite() {
+            document.getElementById('header-title').innerText = "물품 공유 글쓰기";
+            let html = `
+                <div class="p-4 space-y-4 animate-fade-in">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">게시글 유형</label>
+                            <select id="write-category" class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="request">🤝 필요요청 (필요한 물건 구하기)</option>
+                                <option value="rent">📦 물품대여 (빌려주기)</option>
+                                <option value="share">🎁 무료나눔 (기부 및 무상 양도)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">제목</label>
+                            <input type="text" id="write-title" placeholder="예: 공학용 계산기 빌려드립니다." class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">상세 내용 및 설명</label>
+                            <textarea id="write-content" rows="4" placeholder="물품 상태, 오염 여부, 대여 조건 등을 자세히 적어주세요." class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">교내 만날 장소</label>
+                                <input type="text" id="write-place" placeholder="예: 도서관 로비" class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">날짜 및 시간</label>
+                                <input type="text" id="write-datetime" placeholder="예: 내일 오후 2시" class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+                        <button onclick="submitPost()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition active:scale-[0.98] text-sm mt-2">게시글 등록하기</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function submitPost() {
+            const category = document.getElementById('write-category').value;
+            const title = document.getElementById('write-title').value.trim();
+            const content = document.getElementById('write-content').value.trim();
+            const place = document.getElementById('write-place').value.trim();
+            const datetime = document.getElementById('write-datetime').value.trim();
+
+            if(!title || !content || !place) {
+                alert('제목, 상세 내용, 만날 장소를 모두 입력해주세요!');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now(),
+                university: currentUser.university,
+                category,
+                title,
+                content,
+                place,
+                datetime: datetime || '상시 협의',
+                status: '진행중',
+                author: currentUser.nickname,
+                likes: 0,
+                createdAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                comments: []
+            };
+
+            posts.unshift(newPost);
+            saveData();
+            alert('게시글이 성공적으로 등록되었습니다!');
+            switchTab('home');
+        }
+
+        // 4. 게시글 상세 및 답장 화면
+        function openDetail(postId) {
+            const post = posts.find(p => p.id === postId);
+            if(!post) return;
+
+            document.getElementById('header-title').innerText = "게시글 상세";
+
+            let commentsHtml = '';
+            post.comments.forEach(c => {
+                commentsHtml += `
+                    <div class="bg-slate-50 p-3 rounded-xl mb-2 text-xs border border-slate-100">
+                        <span class="font-bold text-emerald-700 block mb-0.5">${c.author}</span>
+                        <p class="text-slate-700">${c.text}</p>
+                    </div>
+                `;
+            });
+
+            let actionButtons = '';
+            if(post.author === currentUser.nickname) {
+                actionButtons = `
+                    <div class="flex space-x-2 mt-4">
+                        <button onclick="toggleStatus(${post.id})" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">${post.status === '진행중' ? '✔ 해결 완료로 변경' : '🔄 진행중으로 변경'}</button>
+                        <button onclick="deletePost(${post.id})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl text-xs transition">삭제</button>
+                    </div>
+                `;
+            } else {
+                actionButtons = `
+                    <button onclick="startChatWithAuthor('${post.author}', ${post.id}, '${post.title}')" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 text-sm transition active:scale-[0.98]">
+                        <i class="fa-solid fa-comment-dots text-base"></i>
+                        <span>작성자와 1:1 채팅하기</span>
+                    </button>
+                `;
+            }
+
+            let html = `
+                <div class="p-4 space-y-4 animate-fade-in">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">${post.university} · ${post.author}</span>
+                            <span class="text-[11px] text-slate-400">${post.createdAt}</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-900 mb-2">${post.title}</h2>
+                        <p class="text-slate-700 text-xs mb-4 leading-relaxed whitespace-pre-line">${post.content}</p>
+                        
+                        <div class="bg-emerald-50/70 p-3.5 rounded-xl text-xs space-y-1.5 text-emerald-950 mb-2 border border-emerald-100/60">
+                            <p><i class="fa-solid fa-location-dot mr-2 text-emerald-600"></i><strong>교내 장소:</strong> ${post.place}</p>
+                            <p><i class="fa-regular fa-clock mr-2 text-emerald-600"></i><strong>시간 협의:</strong> ${post.datetime}</p>
+                        </div>
+                        
+                        ${actionButtons}
+                    </div>
+
+                    <!-- 댓글 및 소통 섹션 -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="font-bold text-xs text-slate-800 mb-3 flex items-center"><i class="fa-regular fa-comments mr-1.5 text-emerald-600 text-sm"></i>댓글 (${post.comments.length})</h3>
+                        <div class="mb-3 space-y-1">${commentsHtml || '<p class="text-xs text-slate-400 py-3 text-center">작성된 댓글이 없습니다.</p>'}</div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="comment-input" placeholder="댓글을 남겨보세요..." class="flex-1 p-2.5 border border-slate-200 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <button onclick="addComment(${post.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl text-xs font-bold shadow transition">등록</button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="switchTab('home')" class="w-full text-center text-xs text-slate-500 py-2 hover:text-slate-800 font-semibold"><i class="fa-solid fa-arrow-left mr-1.5"></i>목록으로 돌아가기</button>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function addComment(postId) {
+            const input = document.getElementById('comment-input');
+            if(!input.value.trim()) return;
+
+            const post = posts.find(p => p.id === postId);
+            post.comments.push({ author: currentUser.nickname, text: input.value.trim() });
+            saveData();
+            openDetail(postId);
+        }
+
+        function toggleStatus(postId) {
+            const post = posts.find(p => p.id === postId);
+            post.status = post.status === '진행중' ? '해결완료' : '진행중';
+            saveData();
+            openDetail(postId);
+        }
+
+        function deletePost(postId) {
+            if(confirm('정말 이 게시글을 삭제하시겠습니까?')) {
+                posts = posts.filter(p => p.id !== postId);
+                saveData();
+                switchTab('home');
+            }
+        }
+
+        // 5. 1:1 실시간 채팅 기능
+        function startChatWithAuthor(partnerName, postId, postTitle) {
+            let existingChat = chats.find(c => c.postId === postId && c.partner === partnerName);
+            if(!existingChat) {
+                existingChat = {
+                    id: Date.now(),
+                    postId,
+                    postTitle,
+                    partner: partnerName,
+                    lastMessage: '대화가 시작되었습니다.',
+                    messages: [
+                        { sender: partnerName, text: `안녕하세요! "${postTitle}" 게시글 보고 대여/나눔 문의드립니다.`, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
+                    ]
+                };
+                chats.unshift(existingChat);
+                saveData();
+            }
+            openChatRoom(existingChat.id);
+        }
+
+        function renderChatList() {
+            document.getElementById('header-title').innerText = "1:1 채팅 목록";
+            let html = `<div class="p-4 space-y-3 animate-fade-in">`;
+
+            if(chats.length === 0) {
+                html += `
+                    <div class="text-center py-20 bg-white rounded-2xl border border-slate-100 p-6 text-slate-400">
+                        <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-2"></i>
+                        <p class="text-xs font-semibold text-slate-600">진행 중인 대화가 없습니다.</p>
+                        <p class="text-[11px] mt-1">관심 있는 게시글에서 작성자에게 채팅을 보내보세요.</p>
+                    </div>
+                `;
+            } else {
+                chats.forEach(chat => {
+                    html += `
+                        <div onclick="openChatRoom(${chat.id})" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-emerald-400 transition flex items-center space-x-3.5 animate-slide-up">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-emerald-500/20">
+                                ${chat.partner.slice(0, 1)}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-center mb-0.5">
+                                    <h4 class="font-bold text-xs text-slate-800">${chat.partner}</h4>
+                                    <span class="text-[10px] text-slate-400 truncate max-w-[120px]">${chat.postTitle}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 truncate font-medium">${chat.lastMessage}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            html += `</div>`;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function openChatRoom(chatId) {
+            const chat = chats.find(c => c.id === chatId);
+            document.getElementById('header-title').innerText = `${chat.partner}님과 대화방`;
+
+            let msgHtml = '';
+            chat.messages.forEach(m => {
+                const isMe = m.sender === currentUser.nickname;
+                msgHtml += `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3">
+                        <span class="text-[9px] text-slate-400 mb-0.5 px-1 font-medium">${m.sender}</span>
+                        <div class="max-w-[78%] p-3 rounded-2xl text-xs ${isMe ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-br-none shadow-md shadow-emerald-600/20' : 'bg-white text-slate-800 rounded-bl-none border border-slate-200 shadow-sm'}">
+                            ${m.text}
+                        </div>
+                        <span class="text-[8px] text-slate-400 mt-1 px-1">${m.time}</span>
+                    </div>
+                `;
+            });
+
+            let html = `
+                <div class="flex flex-col h-[calc(100vh-110px)] md:h-[calc(92vh-120px)] justify-between bg-slate-50 animate-fade-in">
+                    <div class="py-2.5 bg-emerald-50 border-b border-emerald-100 text-[11px] text-emerald-900 flex justify-between items-center px-4 font-semibold">
+                        <span><i class="fa-solid fa-shield-halved mr-1.5 text-emerald-600"></i>교내 안심 거래 채팅방</span>
+                        <button onclick="switchTab('chat')" class="font-bold text-emerald-700 hover:text-emerald-800">목록으로</button>
+                    </div>
+                    <div id="chat-scroll" class="flex-1 p-4 overflow-y-auto space-y-1">
+                        ${msgHtml}
+                    </div>
+                    <div class="p-3 bg-white border-t border-slate-200 flex space-x-2">
+                        <input type="text" id="chat-input" onkeyup="if(event.key==='Enter') sendMessage(${chat.id})" placeholder="만날 장소와 시간을 협의해보세요..." class="flex-1 p-3 border border-slate-200 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <button onclick="sendMessage(${chat.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl text-xs font-bold shadow-md transition active:scale-95"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+            const scroll = document.getElementById('chat-scroll');
+            scroll.scrollTop = scroll.scrollHeight;
+        }
+
+        function sendMessage(chatId) {
+            const input = document.getElementById('chat-input');
+            if(!input.value.trim()) return;
+
+            const chat = chats.find(c => c.id === chatId);
+            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            chat.messages.push({ sender: currentUser.nickname, text: input.value.trim(), time: timeStr });
+            chat.lastMessage = input.value.trim();
+            saveData();
+            openChatRoom(chatId);
+        }
+
+        // 6. 마이페이지 화면
+        function renderMyPage() {
+            document.getElementById('header-title').innerText = "마이페이지";
+            const myPosts = posts.filter(p => p.author === currentUser.nickname);
+
+            let html = `
+                <div class="p-4 space-y-4 animate-fade-in">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-5 rounded-2xl shadow-lg shadow-emerald-600/20 flex items-center space-x-4">
+                        <div class="w-14 h-14 bg-white/20 backdrop-blur-md text-white rounded-2xl flex items-center justify-center font-extrabold text-xl ring-2 ring-white/30 shadow-inner">
+                            ${currentUser.nickname.slice(0, 1)}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-base tracking-tight">${currentUser.nickname}</h3>
+                            <p class="text-xs text-emerald-100 mt-0.5 font-medium"><i class="fa-solid fa-graduation-cap mr-1"></i>${currentUser.university}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-xs text-slate-800 mb-3 flex items-center"><i class="fa-solid fa-pen-to-square mr-1.5 text-emerald-600 text-sm"></i>내가 작성한 게시글 (${myPosts.length}개)</h4>
+                        <div class="space-y-2 max-h-56 overflow-y-auto">
+            `;
+
+            if(myPosts.length === 0) {
+                html += `<p class="text-xs text-slate-400 py-6 text-center">작성한 게시글이 없습니다.</p>`;
+            } else {
+                myPosts.forEach(p => {
+                    html += `
+                        <div onclick="openDetail(${p.id})" class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl cursor-pointer flex justify-between items-center border border-slate-100 transition">
+                            <div>
+                                <span class="text-[10px] text-emerald-700 font-bold">${p.category==='request'?'필요요청':p.category==='rent'?'물품대여':'무료나눔'}</span>
+                                <h5 class="text-xs font-bold text-slate-800 mt-0.5">${p.title}</h5>
+                            </div>
+                            <span class="text-[10px] bg-white border border-slate-200 px-2.5 py-1 rounded-full text-slate-600 font-bold">${p.status}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-xs space-y-3 text-slate-700 font-semibold">
+                        <div class="flex justify-between py-2 border-b border-slate-50 cursor-pointer hover:text-emerald-600"><span>이용 규칙 및 가이드</span><i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i></div>
+                        <div class="flex justify-between py-2 border-b border-slate-50 cursor-pointer hover:text-emerald-600"><span>안전한 교내 거래 수칙</span><i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i></div>
+                        <div onclick="logout()" class="flex justify-between py-2 text-rose-500 font-bold cursor-pointer hover:text-rose-600"><span>계정 로그아웃 / 초기화</span><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+        }
+
+        function logout() {
+            if(confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('nanumi_user');
+                currentUser = null;
+                renderAuthScreen();
+            }
+        }
+    </script>
+</body>
+</html>
